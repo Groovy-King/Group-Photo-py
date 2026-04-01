@@ -6,6 +6,12 @@ from Galaxy import Galaxy
 from Group import Group
 
 def load_galaxies(volume, slice):
+    """
+        Loads galaxy data from the specified volume and slice, and returns a list of Galaxy objects. The function also checks that the input volume and slice numbers are valid integers within the expected range (volume: 1-9, slice: 1-3). 
+        Each Galaxy object is initialized with its position (RA, Dec, z) and properties (magnitude, stellar mass, absolute magnitude, halo mass). Additionally, a boolean attribute 'has_halo' is set for each galaxy based on whether the galaxy 
+        has an associated halo in the mock simulation.
+    """
+
     # Check that volume and slice are valid integers within the expected range
     if not isinstance(volume, int) or not isinstance(slice, int):
         raise TypeError("Volume and slice must be integers")
@@ -17,7 +23,6 @@ def load_galaxies(volume, slice):
 
     df = pd.read_csv(f'Data/Galaxies/Vol_{volume}_Slice_{slice}.csv')
     galaxies = []
-    groups = []
     for i in range(len(df)):
         RA = df.iloc[i, 1] * u.degree
         Dec = df.iloc[i, 2] * u.degree
@@ -43,7 +48,4 @@ def load_galaxies(volume, slice):
             gal.has_halo = False
         galaxies.append(gal)
 
-        grp = Group(gal, properties)
-        
-        groups.append(grp)
-    return galaxies
+    return np.array(galaxies, dtype = object)
