@@ -46,6 +46,10 @@ class Group:
 
         # Combine the angular and redshift masks to identify galaxies within the NFW cylinder
         nfw_cylinder_mask = angular_mask & z_mask
+
+        # Store the richness of the group as the number of galaxies within the NFW cylinder
+        self.richness = np.sum(nfw_cylinder_mask)
+        
         return nfw_cylinder_mask
     
     def _f(self, x):
