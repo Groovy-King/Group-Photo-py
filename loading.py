@@ -6,6 +6,15 @@ from Galaxy import Galaxy
 from Group import Group
 
 def load_galaxies(volume, slice):
+    # Check that volume and slice are valid integers within the expected range
+    if not isinstance(volume, int) or not isinstance(slice, int):
+        raise TypeError("Volume and slice must be integers")
+    elif volume < 1 or volume > 9:
+        raise ValueError("Volume must be between 1 and 9")
+    elif slice < 1 or slice > 3:
+        raise ValueError("Slice must be between 1 and 3")
+    
+
     df = pd.read_csv(f'Data/Galaxies/Vol_{volume}_Slice_{slice}.csv')
     galaxies = []
     groups = []
