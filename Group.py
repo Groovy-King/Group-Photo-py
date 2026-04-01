@@ -17,7 +17,7 @@ class Group:
     def NFW_cylinder(self, galaxies):
         try:
             H = self.H
-        except KeyError:
+        except AttributeError:
             self.compute_properties()
             H = self.H
         r200 = self.r200
@@ -49,7 +49,7 @@ class Group:
 
         # Store the richness of the group as the number of galaxies within the NFW cylinder
         self.richness = np.sum(nfw_cylinder_mask)
-        
+
         return nfw_cylinder_mask
     
     def _f(self, x):
@@ -69,7 +69,7 @@ class Group:
             r200 = self.r200
             c200 = self.c200
             rho_crit = self.rho_crit
-        except KeyError:
+        except AttributeError:
             self.compute_properties()
             r200 = self.r200
             c200 = self.c200
