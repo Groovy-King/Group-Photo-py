@@ -2,15 +2,18 @@ import numpy as np
 import pandas as pd
 import astropy.units as u
 from scipy.stats import shapiro
+import argparse
 
 from Galaxy import Galaxy
 from Group import Group
 from constants import c
 from loading import load_galaxies
+from astropy.coordinates import SkyCoord
 
-def identify_group_centers(volume, slice):
+def identify_groups(volume, slice):
     galaxies = load_galaxies(volume, slice)
-    group_centers = []
+    groups = []
+    print(f"Loaded {len(galaxies)} galaxies, now identifying groups...")
 
     # Choose mid points of mass bands
     massspace = np.logspace(10,15,100)
@@ -21,16 +24,37 @@ def identify_group_centers(volume, slice):
     n_min = 5
     p_min = 0.1
 
-    for mass in masses:
-        for galaxy in galaxies:
-            candidate_group = Group(galaxy, {"M500": mass * u.Msun})
-            nfw_mask = candidate_group.NFW_cylinder(galaxies)
-            nfw_count = np.sum(nfw_mask)
-            
+    # Constructing galaxies position list
+    ra_galaxies = np.array([g.pos[0] for g in galaxies], dtype = object)
+    dec_galaxies = np.array([g.pos[1] for g in galaxies], dtype = object)
+    z_galaxies = np.array([g.pos[2] for g in galaxies])
+    sky_galaxies = SkyCoord(ra = ra_galaxies, dec = dec_galaxies)
+
+    for galaxy in galaxies:
+        sky_group = SkyCoord(ra = galaxy.pos[0], dec = galaxy.pos[1])
+        z_group = galaxy.pos[2]
+
+        angular_separation = sky_group.separation(sky_galaxies).to(u.rad, equivalencies = u.dimensionless_angles()).value
+        delta_z = z_galaxies - z_group
+        for mass in masses:
+            candidate_group = Group(galaxy, m500 = mass * u.Msun)
+            nfw_mask = candidate_group.NFW_cylinder(angular_separation, delta_z)
+            nfw_count = candidate_group.richness
             if nfw_count >= n_min:  # Threshold for group membership
-                galaxy_velocities = np.array([g.pos[2]*c for g in galaxies[nfw_mask]])
+                galaxy_velocities = np.array([g.pos[2] for g in galaxies[nfw_mask]]) * c.value
                 # Perform the Shapiro-Wilk test for normality on the velocity distribution
                 SW_result = shapiro(galaxy_velocities)
                 if SW_result.pvalue > p_min:  # Threshold for normality
-                    group_centers.append(candidate_group)
-    return group_centers
+                    groups.append(candidate_group)
+    return groups
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description = "Identify galaxy groups in a given volume and slice.")
+    parser.add_argument("--volume", type = int, default = 1, help = "Volume number (1-9)")
+    parser.add_argument("--slice", type = int, default = 1, help = "Slice number (1-3)")
+    args = parser.parse_args()
+
+    volume = args.volume
+    slice = args.slice
+    groups = identify_groups(volume, slice)
+    print(f"Identified {len(groups)} groups in volume {volume} slice {slice}.")

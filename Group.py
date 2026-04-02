@@ -14,7 +14,7 @@ class Group:
         self.m500 = m500
         return
 
-    def NFW_cylinder(self, galaxies):
+    def NFW_cylinder(self, angular_separation, delta_z):
         try:
             H = self.H
         except AttributeError:
@@ -25,23 +25,11 @@ class Group:
         Da = self.Da
         theta_max = (r200 / Da).to(u.dimensionless_unscaled).value
         z_max = 2 * sigma_z.value
-
-        # Extract the RA, Dec, and redshift of the group and the input galaxies
-        ra_group = self.pos[0]
-        dec_group = self.pos[1]
-        z_group = self.pos[2]
-        ra_galaxies = np.array([g.pos[0] for g in galaxies], dtype = object)
-        dec_galaxies = np.array([g.pos[1] for g in galaxies], dtype = object)
-        z_galaxies = np.array([g.pos[2] for g in galaxies])
-
+        
         # Compute the projected radius R for each galaxy in the input list
-        sky_group = SkyCoord(ra = ra_group, dec = dec_group)
-        sky_galaxies = SkyCoord(ra = ra_galaxies, dec = dec_galaxies)
-        angular_separation = sky_group.separation(sky_galaxies).to(u.rad, equivalencies = u.dimensionless_angles()).value
         angular_mask = angular_separation < theta_max
 
         # Compute the line-of-sight velocity difference for each galaxy
-        delta_z = z_galaxies - z_group
         z_mask = np.abs(delta_z) < z_max
 
         # Combine the angular and redshift masks to identify galaxies within the NFW cylinder
