@@ -5,23 +5,14 @@ import astropy.units as u
 from Galaxy import Galaxy
 from Group import Group
 
-def load_galaxies(volume, slice):
+def load_galaxies(filename):
     """
-        Loads galaxy data from the specified volume and slice, and returns a list of Galaxy objects. The function also checks that the input volume and slice numbers are valid integers within the expected range (volume: 1-9, slice: 1-3). 
+        Loads galaxy data from the specified file, and returns a list of Galaxy objects. The function also checks that the input volume and slice numbers are valid integers within the expected range (volume: 1-9, slice: 1-3). 
         Each Galaxy object is initialized with its position (RA, Dec, z) and properties (magnitude, stellar mass, absolute magnitude, halo mass). Additionally, a boolean attribute 'has_halo' is set for each galaxy based on whether the galaxy 
         has an associated halo in the mock simulation.
     """
-
-    # Check that volume and slice are valid integers within the expected range
-    if not isinstance(volume, int) or not isinstance(slice, int):
-        raise TypeError("Volume and slice must be integers")
-    elif volume < 1 or volume > 9:
-        raise ValueError("Volume must be between 1 and 9")
-    elif slice < 1 or slice > 3:
-        raise ValueError("Slice must be between 1 and 3")
     
-
-    df = pd.read_csv(f'Data/Galaxies/Vol_{volume}_Slice_{slice}.csv')
+    df = pd.read_csv(filename)
     galaxies = []
     for i in range(len(df)):
         RA = df.iloc[i, 1] * u.degree

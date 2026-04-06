@@ -10,8 +10,8 @@ from constants import c
 from loading import load_galaxies
 from astropy.coordinates import SkyCoord
 
-def identify_groups(volume, slice):
-    galaxies = load_galaxies(volume, slice)
+def identify_groups(filename):
+    galaxies = load_galaxies(filename)
     groups = []
     print(f"Loaded {len(galaxies)} galaxies, now identifying groups...")
 
@@ -56,5 +56,14 @@ if __name__ == "__main__":
 
     volume = args.volume
     slice = args.slice
-    groups = identify_groups(volume, slice)
+
+    # Check that volume and slice are valid integers within the expected range
+    if not isinstance(volume, int) or not isinstance(slice, int):
+        raise TypeError("Volume and slice must be integers")
+    elif volume < 1 or volume > 9:
+        raise ValueError("Volume must be between 1 and 9")
+    elif slice < 1 or slice > 3:
+        raise ValueError("Slice must be between 1 and 3")
+
+    groups = identify_groups(f"Data/Galaxies/Vol_{volume}_Slice_{slice}.csv")
     print(f"Identified {len(groups)} groups in volume {volume} slice {slice}.")

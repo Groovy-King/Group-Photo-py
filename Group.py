@@ -5,12 +5,12 @@ import astropy.units as u
 from astropy.coordinates import SkyCoord
 
 class Group:
-    def __init__(self, galaxy, m500):
+    def __init__(self, central_galaxy, m500):
         """
             Must inlcude M500 in the initialization, and the galaxy must have a redshift (pos[2]) for the calculations to work.
         """
-        self.galaxy = galaxy
-        self.pos = galaxy.pos
+        self.central_galaxy = central_galaxy
+        self.pos = central_galaxy.pos
         self.m500 = m500
         return
 
@@ -26,10 +26,10 @@ class Group:
         theta_max = (r200 / Da).to(u.dimensionless_unscaled).value
         z_max = 2 * sigma_z.value
         
-        # Compute the projected radius R for each galaxy in the input list
+        # Generate a boolean mask for galaxies within the angular separation corresponding to R200
         angular_mask = angular_separation < theta_max
 
-        # Compute the line-of-sight velocity difference for each galaxy
+        # Generate a boolean mask for galaxies within the redshift separation corresponding to 2*sigma_z
         z_mask = np.abs(delta_z) < z_max
 
         # Combine the angular and redshift masks to identify galaxies within the NFW cylinder
