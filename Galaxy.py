@@ -1,5 +1,6 @@
 import numpy as np
 import astropy.units as u
+import os
 
 class Galaxy:
     """
@@ -10,9 +11,10 @@ class Galaxy:
     _id_counter = 0
     @classmethod
     def _generate_id(cls):
-        i = cls._id_counter
+        pid = os.getpid()  # Get the current process ID to ensure uniqueness across different runs
+        id = f"{pid}_{cls._id_counter}"  # Combine process ID with the
         cls._id_counter += 1
-        return i
+        return id
 
     def __init__(self, pos, properties):
         self.id = self._generate_id()
