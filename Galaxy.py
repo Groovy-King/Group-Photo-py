@@ -15,6 +15,13 @@ class Galaxy:
         id = f"{pid}_{cls._id_counter}"  # Combine process ID with the
         cls._id_counter += 1
         return id
+    
+    # Define equality and hashing methods to allow Galaxy instances to be stored in sets and compared based on their unique IDs  
+    def __eq__(self, value):
+        return self.id == value.id
+    
+    def __hash__(self):
+        return hash(self.id)
 
     def __init__(self, pos, properties):
         self.id = self._generate_id()
