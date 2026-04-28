@@ -4,15 +4,17 @@ import astropy.units as u
 from scipy.stats import shapiro
 import argparse
 
-from Galaxy import Galaxy
-from Group import Group
+#from Galaxy import Galaxy
+#from Group import Group
 from constants import c
 from loading import load_galaxies
+from group_builder import build_groups
 from astropy.coordinates import SkyCoord
 
 def identify_groups(filename):
     galaxies = load_galaxies(filename)
-    groups = []
+    gal_list = np.array(list(galaxies), dtype = object)
+    groups = set()  # Use a set to store groups to avoid duplicates
     print(f"Loaded {len(galaxies)} galaxies, now identifying groups...")
 
     # Choose mid points of mass bands
@@ -20,32 +22,53 @@ def identify_groups(filename):
     idxidx = np.round(np.linspace(41,90,10))
     masses = massspace[idxidx.astype(int)]
 
-    # Threshold for group membership is set to 5 galaxies within the NFW cylinder, and we also require that the velocity distribution of these galaxies is consistent with being drawn from a normal distribution (p-value > 0.1 in the Shapiro-Wilk test)
+    # Threshold for group membership is set to 5 galaxies within the NFW cylinder, and we also require that the velocity distribution 
+    # of these galaxies is consistent with being drawn from a normal distribution (p-value > 0.1 in the Shapiro-Wilk test)
     n_min = 5
     p_min = 0.1
 
     # Constructing galaxies position list
-    ra_galaxies = np.array([g.pos[0] for g in galaxies], dtype = object)
-    dec_galaxies = np.array([g.pos[1] for g in galaxies], dtype = object)
-    z_galaxies = np.array([g.pos[2] for g in galaxies])
+    n_galaxies = len(galaxies)
+    ra_galaxies = np.empty(n_galaxies, dtype = object)
+    dec_galaxies = np.empty(n_galaxies, dtype = object)
+    z_galaxies = np.empty(n_galaxies)
+    for i, g in enumerate(galaxies):
+        ra_galaxies[i] = g.pos[0]
+        dec_galaxies[i] = g.pos[1]
+        z_galaxies[i] = g.pos[2]
     sky_galaxies = SkyCoord(ra = ra_galaxies, dec = dec_galaxies)
 
     for galaxy in galaxies:
-        sky_group = SkyCoord(ra = galaxy.pos[0], dec = galaxy.pos[1])
-        z_group = galaxy.pos[2]
+        # Creating the array of angular separations and redshift differences between the current galaxy and all other galaxies.
+        sky_center = SkyCoord(ra = galaxy.pos[0], dec = galaxy.pos[1])
+        z_center = galaxy.pos[2]
+        angular_separation = sky_center.separation(sky_galaxies).to(u.rad, equivalencies = u.dimensionless_angles()).value
+        delta_z = z_galaxies - z_center
 
-        angular_separation = sky_group.separation(sky_galaxies).to(u.rad, equivalencies = u.dimensionless_angles()).value
-        delta_z = z_galaxies - z_group
-        for mass in masses:
-            candidate_group = Group(galaxy, m500 = mass * u.Msun)
+        # Build the groups centered on this galaxy for each mass band, and compute the properties needed to define the NFW cylinder.
+        build_groups(galaxy, masses)
+
+        # Check if the created groups satisfy the criteria for being a candidate group, and if so, add them to the set of identified groups.
+        discarded_groups = set()  # Keep track of groups that do not meet the criteria to avoid redundant checks
+        for candidate_group in galaxy.core_groups:
+            criteria_check = False
             nfw_mask = candidate_group.NFW_cylinder(angular_separation, delta_z)
             nfw_count = candidate_group.richness
             if nfw_count >= n_min:  # Threshold for group membership
-                galaxy_velocities = np.array([g.pos[2] for g in galaxies[nfw_mask]]) * c.value
+                galaxy_velocities = np.array([g.pos[2] for g in gal_list[nfw_mask]]) * c.value
                 # Perform the Shapiro-Wilk test for normality on the velocity distribution
                 SW_result = shapiro(galaxy_velocities)
                 if SW_result.pvalue > p_min:  # Threshold for normality
-                    groups.append(candidate_group)
+                    groups.add(candidate_group)
+                    criteria_check = True
+
+            if criteria_check:
+                candidate_group.add_galaxies(set(gal_list[nfw_mask]))  # Add the galaxies within the NFW cylinder to the group if it meets the criteria for group membership
+            else:
+                discarded_groups.add(candidate_group)
+        
+        for dg in discarded_groups:
+                galaxy.core_groups.discard(dg)  # Discard the candidate group if it does not meet the criteria for group membership
     return groups
 
 if __name__ == "__main__":
