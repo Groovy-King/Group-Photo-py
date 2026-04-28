@@ -1,17 +1,39 @@
 import numpy as np
+import os
 from util import *
 from constants import *
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 
 class Group:
+    # Generate a unique ID for each group instance, while storing the count as a class variable to ensure uniqueness across all instances
+    _id_counter = 0
+    @classmethod
+    def _generate_id(cls):
+        pid = os.getpid()  # Get the current process ID to ensure uniqueness across different runs
+        id = f"{pid}_{cls._id_counter}"  # Combine process ID with the ID counter
+        cls._id_counter += 1
+        return id
+    
+    # Define equality and hashing methods to allow Group instances to be stored in sets and compared based on their unique IDs
+    def __eq__(self, value):
+        return self.id == value.id
+    
+    def __hash__(self):
+        return hash(self.id)
+    
+    # Constructor to initialize a Group instance with its central galaxy and M500. The position of the group is set to be the same 
+    # as the central galaxy's position. An empty set is initialized to store the galaxies that belong to this group.
     def __init__(self, central_galaxy, m500):
         """
-            Must inlcude M500 in the initialization, and the galaxy must have a redshift (pos[2]) for the calculations to work.
+            Must inlcude M500 in the initialization, and must always be called within a Galaxy instance.
         """
         self.central_galaxy = central_galaxy
         self.pos = central_galaxy.pos
         self.m500 = m500
+        self.id = self._generate_id()  # Unique identifier for the group, generated using a combination of the central galaxy's ID and the mass band index
+        self.galaxies = set()  # Initialize an empty set to store the galaxies that belong to this group
+        self.galaxies.add(central_galaxy)  # Add the central galaxy to the group by default
         return
 
     def NFW_cylinder(self, angular_separation, delta_z):
@@ -114,9 +136,32 @@ class Group:
         E = H / H0
         A = (474.4 * u.km / u.s)**3 * (m500 * E / (1e14 * u.Msun))**(0.94)
         A = A.to(u.km**3 / u.s**3)
+
+        # Compute the velocity dispersion sigma_v using the relation from Pearson et al. (2012), check equation 10 of draft paper
         sigma_v = A**(1/3) * np.exp(sigma_e2**2 / 2)
         self.sigma_v = sigma_v.to(u.km / u.s)
 
         sigma_z =  (1 + z) * sigma_v / c
         self.sigma_z = sigma_z.to(u.dimensionless_unscaled)
         return
+    
+    def add_galaxies(self, galaxies):
+        """
+            Adds galaxies to the group. This method can be used after identifying candidate groups to populate them with their member galaxies.
+        """
+        self.galaxies |= galaxies  # Use set union to add galaxies to the group, ensuring no duplicates
+        for galaxy in galaxies:
+            galaxy.associated_groups.add(self)  # Add this group to each galaxy's set of associated groups
+        return
+    
+    def remove_galaxies(self, galaxies):
+        """
+            Removes galaxies from the group. This method can be used to remove galaxies from groups if they are found to not meet the criteria for group membership.
+        """
+        self.galaxies -= galaxies  # Use set difference to remove galaxies from the group
+        for galaxy in galaxies:
+            galaxy.associated_groups.discard(self)  # Remove this group from each galaxy's set of associated groups
+
+    # Incomplete, will remove all references to this instance getting it ready to be deleted.
+    def delete(self):
+        pass
