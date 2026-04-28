@@ -13,7 +13,7 @@ def load_galaxies(filename):
     """
     
     df = pd.read_csv(filename)
-    galaxies = []
+    galaxies = set()  # Use a set to store galaxies to avoid duplicates
     for i in range(len(df)):
         RA = df.iloc[i, 1] * u.degree
         Dec = df.iloc[i, 2] * u.degree
@@ -37,6 +37,6 @@ def load_galaxies(filename):
             gal.has_halo = True
         else:
             gal.has_halo = False
-        galaxies.append(gal)
+        galaxies.add(gal)
 
-    return np.array(galaxies, dtype = object)
+    return galaxies
