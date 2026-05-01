@@ -12,6 +12,7 @@ class MemberGalaxy(Galaxy):
         # Call the constructor of the parent Galaxy class to initialize the position and properties
         super().__init__(galaxy.pos, galaxy.properties, id = galaxy.id, include_groups = False)  
         self.parent_group = group  # Store a reference to the group that this galaxy belongs to
+        self.parent_galaxy = galaxy  # Store a reference to the original Galaxy instance that this MemberGalaxy is based on
         return
     
     def compute_probability_density(self):
@@ -66,5 +67,5 @@ class MemberGalaxy(Galaxy):
         prob_density_theta = Da * projected_radius * Sigma_projected_radius / (np.trapezoid(integrand, r_array))
 
         prob_density_total = prob_density_theta * prob_density_z
-        self.prob_density_positional = prob_density_total
+        self.probability_density_positional = prob_density_total
         return prob_density_total
