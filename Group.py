@@ -40,12 +40,13 @@ class Group:
         self.add_galaxy(central_galaxy)  # Add the central galaxy to the group by default
         return
     
-    def get_member_galaxies(self):
+    @property
+    def member_galaxies(self):
         """
             Returns the set of member galaxies that belong to this group. 
             This method can be used to access the galaxies that are part of the group after they have been added using the add_galaxies method.
         """
-        return self._member_galaxies
+        return frozenset(self._member_galaxies)
 
     def NFW_cylinder(self, angular_separation, delta_z):
         try:
