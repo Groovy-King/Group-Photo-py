@@ -28,30 +28,39 @@ class Galaxy:
 
     # Constructor to initialize a Galaxy instance with its position (RA, Dec, z) and properties (magnitude, stellar mass, absolute magnitude, 
     # halo mass). The position is stored as a numpy array for easy access and manipulation. 
-    def __init__(self, pos, properties, id = None):
+    def __init__(self, pos, properties, id = None, include_groups = True):
         self.id = id if id is not None else self._generate_id()
         self.pos = pos
         self.properties = properties
-        self.core_groups = set()  # Initialize an empty set to store the groups centered on this galaxy
-        self.associated_groups = set()  # Initialize an empty set to store the associated groups that this galaxy belongs to
+        
+        if include_groups:
+            self.core_groups = set()  # Initialize an empty set to store the groups centered on this galaxy
+            self.associated_groups = set()  # Initialize an empty set to store the associated groups that this galaxy belongs to
         return
 
     def add_to_groups(self, groups):
         """
-            Adds this galaxy to the specified group, and also adds the group to the galaxy's set of associated groups. 
+            Adds this galaxy to the specified groups, and also adds the groups to the galaxy's set of associated groups. 
             This method can be used after identifying candidate groups to populate them with their member galaxies.
         """
         self.associated_groups |= groups  # Add this group to the galaxy's set of associated groups
         for group in groups:
-            group.galaxies.add(self)  # Add this galaxy to the group's set of member galaxies
+            group.add_galaxies(self, update_galaxies = False)  # Add this galaxy to the group's set of member galaxies
         return
     
     def remove_from_groups(self, groups):
         """
-            Removes this galaxy from the specified group, and also removes the group from the galaxy's set of associated groups. 
+            Removes this galaxy from the specified groups, and also removes the groups from the galaxy's set of associated groups. 
             This method can be used to remove galaxies from groups if they are found to not meet the criteria for group membership.
         """
         self.associated_groups -= groups  # Remove this group from the galaxy's set of associated groups
         for group in groups:
-            group.galaxies.discard(self)  # Remove this galaxy from the group's set of member galaxies
+            group.remove_galaxies(self, update_galaxies = False)  # Remove this galaxy from the group's set of member galaxies
         return
+    
+    def compute_weight(self):
+        """
+            TO BE IMPLEMENTED: Computes the weight of the probabilistic vote casted by this galaxy, 
+            based on its observed luminosity and the luminosity function of galaxies in the universe. 
+        """
+        pass

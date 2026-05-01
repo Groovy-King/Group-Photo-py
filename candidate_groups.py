@@ -63,8 +63,9 @@ def identify_groups(filename):
                     criteria_check = True
 
             if criteria_check:
-                candidate_group.add_galaxies(set(gal_list[nfw_mask]))  # Add the galaxies within the NFW cylinder to the group if it meets the criteria for group membership
+                candidate_group.add_galaxies(gal_list[nfw_mask])  # Add the galaxies within the NFW cylinder to the group if it meets the criteria for group membership
             else:
+                galaxy.remove_from_groups(set([candidate_group]))  # Remove the candidate group from the galaxy's set of associated groups if it does not meet the criteria for group membership
                 discarded_groups.add(candidate_group)
         
         for dg in discarded_groups:
