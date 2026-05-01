@@ -4,6 +4,9 @@ from util import *
 from constants import *
 import astropy.units as u
 from astropy.coordinates import SkyCoord
+from collections.abc import Iterable
+from Member_galaxy import MemberGalaxy
+from Galaxy import Galaxy
 
 class Group:
     # Generate a unique ID for each group instance, while storing the count as a class variable to ensure uniqueness across all instances
@@ -32,9 +35,16 @@ class Group:
         self.pos = central_galaxy.pos
         self.m500 = m500
         self.id = self._generate_id()  # Unique identifier for the group, generated using a combination of the central galaxy's ID and the mass band index
-        self.galaxies = set()  # Initialize an empty set to store the galaxies that belong to this group
-        self.galaxies.add(central_galaxy)  # Add the central galaxy to the group by default
+        self._member_galaxies = set()  # Initialize an empty set to store the galaxies that belong to this group
+        self.add_galaxy(central_galaxy)  # Add the central galaxy to the group by default
         return
+    
+    def get_member_galaxies(self):
+        """
+            Returns the set of member galaxies that belong to this group. 
+            This method can be used to access the galaxies that are part of the group after they have been added using the add_galaxies method.
+        """
+        return self._member_galaxies
 
     def NFW_cylinder(self, angular_separation, delta_z):
         try:
@@ -64,17 +74,33 @@ class Group:
     
     def _f(self, x):
         """Computes the function f(x) used in the NFW profile for the projected surface density. Refer to equation 15 in the draft paper."""
-        if x < 0:
-            raise ValueError("x must be non-negative!")
-        elif x < 1:
-            return 1 - 2*np.arctanh( np.sqrt((1 - x) / (1 + x)) ) / np.sqrt(1 - x**2)
-        elif x == 1:
-            return 0
-        else:
-            return 1 - 2*np.arctan( np.sqrt((x - 1) / (x + 1)) ) / np.sqrt(x**2 - 1)
+        x = np.asarray(x, dtype=float)
+        result = np.zeros_like(x)
+        eps = 1e-8
+
+        # x < 1
+        m1 = x < 1 - eps
+        xm = x[m1]
+        result[m1] = (1 - np.arccosh(1/xm) / np.sqrt(1 - xm**2)) / (xm**2 - 1)
+
+        # x ≈ 1 (analytic limit)
+        m2 = np.abs(x - 1) <= eps
+        result[m2] = 1/3  # IMPORTANT: finite limit for this form
+
+        # x > 1
+        m3 = x > 1 + eps
+        xp = x[m3]
+        result[m3] = (1 - np.arccos(1/xp) / np.sqrt(xp**2 - 1)) / (xp**2 - 1)
+
+        return result
     
-    def _NFW_Sigma(self, r):
-        """Computes the projected surface density Sigma(r) at a given projected radius r using the NFW profile. Refer to equation 14 in the draft paper."""
+    def NFW_Sigma(self, r):
+        """
+        Computes the projected surface density Sigma(r) at a given projected radius r using the NFW profile. 
+        Refer to equation 14 in the draft paper.
+        New version uses Eqn. 41 from Lokas and Mamon (2001), avoiding the issue of singularity at r = rs. 
+        Old version used Eqn. 2.6 and 2.7 from Bartelmann (1996).
+        """
         try:
             r200 = self.r200
             c200 = self.c200
@@ -87,14 +113,16 @@ class Group:
 
         # Compute the scale radius rs
         rs = r200 / c200
+        self.rs = rs.to(u.Mpc)
 
         # Compute the characteristic density rho_s
         rho_s = 200 * rho_crit * (c200**3) / (3 * (np.log(1 + c200) - c200 / (1 + c200)))
+        self.rho_s = rho_s
 
         # Compute the projected surface density Sigma(r) using the NFW profile
         x = r / rs
         x = x.to(u.dimensionless_unscaled).value  # Convert x to a dimensionless value for the function f(x)
-        Sigma = 2 * rho_s * rs * self._f(x) / (x**2 - 1)
+        Sigma = 2 * rho_s * rs * self._f(x)
         return Sigma
     
     def compute_properties(self):
@@ -145,22 +173,41 @@ class Group:
         self.sigma_z = sigma_z.to(u.dimensionless_unscaled)
         return
     
-    def add_galaxies(self, galaxies):
+    def add_galaxies(self, galaxies, update_galaxies = True):
         """
             Adds galaxies to the group. This method can be used after identifying candidate groups to populate them with their member galaxies.
         """
-        self.galaxies |= galaxies  # Use set union to add galaxies to the group, ensuring no duplicates
-        for galaxy in galaxies:
-            galaxy.associated_groups.add(self)  # Add this group to each galaxy's set of associated groups
+        members = set()
+        for _, galaxy in enumerate(galaxies):
+            member = MemberGalaxy(galaxy, self)
+            members.add(member)
+            if update_galaxies:
+                galaxy.associated_groups.add(self)  # Add this group to each galaxy's set of associated groups
+        self._member_galaxies |= members  # Use set union to add galaxies to the group, ensuring no duplicates
         return
     
-    def remove_galaxies(self, galaxies):
+    def remove_galaxies(self, galaxies, update_galaxies = True):
         """
             Removes galaxies from the group. This method can be used to remove galaxies from groups if they are found to not meet the criteria for group membership.
         """
-        self.galaxies -= galaxies  # Use set difference to remove galaxies from the group
-        for galaxy in galaxies:
-            galaxy.associated_groups.discard(self)  # Remove this group from each galaxy's set of associated groups
+        self._member_galaxies -= set(galaxies)  # Use set difference to remove galaxies from the group
+        if update_galaxies:
+            for _, galaxy in enumerate(galaxies):
+                galaxy.associated_groups.discard(self)  # Remove this group from each galaxy's set of associated groups
+
+    def add_galaxy(self, galaxy, update_galaxy = True):
+        """
+            Adds a single galaxy to the group. This method can be used after identifying candidate groups to populate them with their member galaxies.
+        """
+        self.add_galaxies([galaxy], update_galaxy)
+        return
+    
+    def remove_galaxy(self, galaxy, update_galaxy = True):
+        """
+            Removes a single galaxy from the group. This method can be used to remove galaxies from groups if they are found to not meet the criteria for group membership.
+        """
+        self.remove_galaxies([galaxy], update_galaxy)
+        return
 
     # Incomplete, will remove all references to this instance getting it ready to be deleted.
     def delete(self):
