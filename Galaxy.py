@@ -26,7 +26,7 @@ class Galaxy:
         
         if include_groups:
             self.core_groups = set()  # Initialize an empty set to store the groups centered on this galaxy
-            self.associated_groups = set()  # Initialize an empty set to store the associated groups that this galaxy belongs to
+            self._associated_groups = set()  # Initialize an empty set to store the associated groups that this galaxy belongs to
         return
     
     def compute_mass_band_probability(self):
@@ -66,7 +66,7 @@ class Galaxy:
             Adds this galaxy to the specified groups, and also adds the groups to the galaxy's set of associated groups. 
             This method can be used after identifying candidate groups to populate them with their member galaxies.
         """
-        self.associated_groups |= groups  # Add this group to the galaxy's set of associated groups
+        self._associated_groups |= groups  # Add this group to the galaxy's set of associated groups
         for group in groups:
             group.add_galaxy(self, update_galaxy = False)  # Add this galaxy to the group's set of member galaxies
         return
@@ -76,7 +76,7 @@ class Galaxy:
             Removes this galaxy from the specified groups, and also removes the groups from the galaxy's set of associated groups. 
             This method can be used to remove galaxies from groups if they are found to not meet the criteria for group membership.
         """
-        self.associated_groups -= groups  # Remove this group from the galaxy's set of associated groups
+        self._associated_groups -= groups  # Remove this group from the galaxy's set of associated groups
         for group in groups:
             group.remove_galaxy(self, update_galaxy = False)  # Remove this galaxy from the group's set of member galaxies
         return

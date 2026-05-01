@@ -183,7 +183,7 @@ class Group:
             member = MemberGalaxy(galaxy, self)
             members.add(member)
             if update_galaxies:
-                galaxy.associated_groups.add(self)  # Add this group to each galaxy's set of associated groups
+                galaxy._associated_groups.add(self)  # Add this group to each galaxy's set of associated groups
         self._member_galaxies |= members  # Use set union to add galaxies to the group, ensuring no duplicates
         return
     
@@ -194,7 +194,7 @@ class Group:
         self._member_galaxies -= set(galaxies)  # Use set difference to remove galaxies from the group
         if update_galaxies:
             for _, galaxy in enumerate(galaxies):
-                galaxy.associated_groups.discard(self)  # Remove this group from each galaxy's set of associated groups
+                galaxy._associated_groups.discard(self)  # Remove this group from each galaxy's set of associated groups
 
     def add_galaxy(self, galaxy, update_galaxy = True):
         """
