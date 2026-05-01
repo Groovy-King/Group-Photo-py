@@ -45,3 +45,16 @@ def cumulative_luminosity_function(M, M_star = (-21.35 + 5*np.log10(h)) * u.mag,
         return cumulative_density  # Return the result with appropriate units
     else:
         return cumulative_density.value  # Return the numerical value without units
+    
+def gapper_estimator(velocities):
+    """
+    Computes the gapper estimator for velocity dispersion, which is a robust method for estimating the velocity dispersion of a group of galaxies, especially when the number of galaxies is small. 
+    The input is an array of galaxy velocities, and the output is the estimated velocity dispersion. Check equations 2 and 3 of Pearson et al. 2015 for details on the formula. 
+    This method assumes that the length of the input is atleast 5, the default threshold for the minimum number of member galaxies in a group, which is necessary for a reliable estimation of the velocity dispersion.
+    """
+    n = len(velocities)   
+    sorted_velocities = np.sort(velocities)  # Sort the velocities in ascending order
+    gaps = sorted_velocities[1:] - sorted_velocities[:-1]  
+    weights = np.arange(1, n) * (n - np.arange(1, n))  # Compute the weights and gaps as defined in section 2.2.1 of Pearson et al. 2015
+    sigma_gapper = np.sqrt(np.pi) / (n * (n - 1)) * np.sum(weights * gaps)  # Equation 2 of Pearson et al. 2015 for the gapper estimator of velocity dispersion
+    return np.sqrt(n / (n - 1)) * sigma_gapper  # Modification if we assume the BCG is at rest with respect to the group center, as mentioned in section 2.2.1 of Pearson et al. 2015
