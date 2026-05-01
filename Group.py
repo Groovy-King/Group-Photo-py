@@ -236,3 +236,15 @@ class Group:
             group.probability_prior_empirical /= normalisation_factor
 
         return groups
+    
+    def compute_m500_gapper(self):
+        """
+        This method can be used to compute the mass of the group using the gapper estimator of velocity dispersion, which acts as a proxy for dynamical mass. See Equation 29 of the draft paper.
+        """
+        v0 = 474.74 * u.km / u.s
+        alpha = 3.18
+        M0 = 1e14 * u.Msun
+        E_z = self.H / H0
+        self.m500_gapper = (self.sigma_v_gapper / v0)**alpha * M0 / E_z
+        self.m500_gapper = self.m500_gapper.to(u.Msun)
+        return self.m500_gapper
