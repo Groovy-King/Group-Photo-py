@@ -31,7 +31,7 @@ def identify_groups(galaxies, n_min = 5, p_min = 0.1):
     ra_galaxies = np.empty(n_galaxies, dtype = object)
     dec_galaxies = np.empty(n_galaxies, dtype = object)
     z_galaxies = np.empty(n_galaxies)
-    for i, g in enumerate(galaxies):
+    for i, g in enumerate(gal_list):
         ra_galaxies[i] = g.pos[0]
         dec_galaxies[i] = g.pos[1]
         z_galaxies[i] = g.pos[2]
