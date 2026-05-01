@@ -209,6 +209,6 @@ class Group:
         self.remove_galaxies([galaxy], update_galaxy)
         return
 
-    # Incomplete, will remove all references to this instance getting it ready to be deleted.
-    def delete(self):
-        pass
+    # Gets the set of member galaxies of this group
+    def get_member_galaxies(self):
+        return self._member_galaxies
