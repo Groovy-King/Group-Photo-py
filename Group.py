@@ -7,6 +7,7 @@ from astropy.coordinates import SkyCoord
 from collections.abc import Iterable
 from Member_galaxy import MemberGalaxy
 from Galaxy import Galaxy
+from statsmodels.nonparametric.smoothers_lowess import lowess
 
 class Group:
     # Generate a unique ID for each group instance, while storing the count as a class variable to ensure uniqueness across all instances
@@ -208,7 +209,30 @@ class Group:
         """
         self.remove_galaxies([galaxy], update_galaxy)
         return
+    
+    @staticmethod
+    def compute_empirical_prior(groups, delta_z = 10**-3):
+        """
+        This method can be used to compute the empirical prior probability for groups to be present at their location with their given mass.
+        The returned value must be normalized after the method is computed for all groups, so that the probabilities across all groups add up to 1.
+        """
+        normalisation_factor = 0
+        for group in groups:
+            z_current = group.pos[2]
+            m_current = group.m500
+            richness_current = group.richness
+            similar_groups = {g for g in groups if np.abs(g.pos[2] - z_current) < delta_z and g.m500 == m_current}
 
-    # Gets the set of member galaxies of this group
-    def get_member_galaxies(self):
-        return self._member_galaxies
+            richness_array = np.array([g.richness for g in similar_groups])
+            bins = np.arange(richness_array.min(), richness_array.max() + 2) - 0.5
+            hist, edges = np.histogram(richness_array, bins=bins)
+            bin_centers = (edges[:-1] + edges[1:]) / 2
+            non_normalised_prior = lowess(hist, bin_centers, frac = 1, xvals = [richness_current], return_sorted = False)
+            group.probability_prior_empirical = non_normalised_prior[0]
+            normalisation_factor += group.probability_prior_empirical
+
+        # Normalize the empirical priors
+        for group in groups:
+            group.probability_prior_empirical /= normalisation_factor
+
+        return groups
