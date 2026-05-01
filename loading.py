@@ -26,10 +26,10 @@ def load_galaxies(filename):
         center = np.array([RA, Dec, z], dtype=object)
 
         properties = {
-            "m": m,
-            "M_star": M_star,
-            "M": M,
-            "M_halo": M_halo
+            "apparent_mag": m,
+            "stellar_mass": M_star,
+            "absolute_mag": M,
+            "halo_mass": M_halo
         }
         gal = Galaxy(center, properties)
 
