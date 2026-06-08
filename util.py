@@ -1,8 +1,8 @@
 import numpy as np
 import astropy.units as u
 from scipy.integrate import quad
-from scipy.special import gammaincc
-
+from mpmath import gammainc
+from astropy.units import Quantity
 from constants import *
 
 # Compute the Hubble constant at a given redshift
@@ -39,8 +39,10 @@ def cumulative_luminosity_function(M, M_star = (-21.35 + 5*np.log10(h)) * u.mag,
     This is obtained by integrating the Schechter luminosity function from -infinity to M.
     """
     x = 10**(0.4 * (M_star.value - M.value))  # Convert absolute magnitude to luminosity relative to L_star
-    cumulative_density = Phi_star * gammaincc(alpha + 1, x)  # Analytical expression for the cumulative luminosity function using the regularized incomplete gamma function
-    cumulative_density = (cumulative_density * u.mag).to(u.Mpc**-3)  # Convert to number density units
+    Phi_star = Phi_star.to(u.Mpc**-3 / u.mag)  # Ensure Phi_star has the correct units for the calculation
+    integral = Phi_star.value * gammainc(alpha + 1, x)  # Analytical expression for the cumulative luminosity function using the regularized incomplete gamma function
+    # Convert to number density units
+    cumulative_density = Quantity(integral, u.Mpc**-3) 
     if return_units:
         return cumulative_density  # Return the result with appropriate units
     else:
