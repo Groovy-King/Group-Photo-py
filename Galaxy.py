@@ -53,8 +53,9 @@ class Galaxy:
         """
         normalisation_factor = 0
         for galaxy in galaxies:
-            galaxy.weight = cumulative_luminosity_function(galaxy.properties["absolute_mag"])**beta  # Compute the weight for this galaxy based on its absolute magnitude and the cumulative luminosity function
-            normalisation_factor += galaxy.weight  # Update the normalization factor by adding the weight of this galaxy
+            galaxy.weight = cumulative_luminosity_function(galaxy.properties["absolute_mag"], return_units = False)**beta  # Compute the weight for this galaxy based on its absolute magnitude and the cumulative luminosity function
+            if not np.isnan(galaxy.weight):
+                normalisation_factor += galaxy.weight  # Update the normalization factor by adding the weight of this galaxy
 
         # Normalize the weights of galaxies
         for galaxy in galaxies:
