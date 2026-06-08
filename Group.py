@@ -230,6 +230,8 @@ class Group:
             bin_centers = (edges[:-1] + edges[1:]) / 2
             non_normalised_prior = lowess(hist, bin_centers, frac = 1, xvals = [richness_current], return_sorted = False)
             group.probability_prior_empirical = non_normalised_prior[0]
+            if np.isnan(group.probability_prior_empirical):
+                group.probability_prior_empirical = 0
             normalisation_factor += group.probability_prior_empirical
 
         # Normalize the empirical priors
