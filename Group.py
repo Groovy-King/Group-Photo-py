@@ -45,6 +45,7 @@ class Group:
         """
             Returns the set of member galaxies that belong to this group. 
             This method can be used to access the galaxies that are part of the group after they have been added using the add_galaxies method.
+            Prevents accidental editing of the member galaxies from outside the Group class by returning a frozenset, which is an immutable version of a set.
         """
         return frozenset(self._member_galaxies)
 
