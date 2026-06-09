@@ -47,7 +47,6 @@ def identify_groups(galaxies, n_min = 5, p_min = 0.1):
         # Build the groups centered on this galaxy for each mass band, and compute the properties needed to define the NFW cylinder.
         build_groups(galaxy, masses)
 
-        
 
         lowest_mass_group = min(galaxy.core_groups, key = lambda g: g.m500)  # Find the group with the lowest mass among the candidate groups for this galaxy
         lowest_mass_group.NFW_cylinder(angular_separation, delta_z)  
