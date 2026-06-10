@@ -272,3 +272,16 @@ class Group:
         member_galaxies = [galaxies[i] for i in range(len(galaxies)) if nfw_mask[i]]  # Get the list of member galaxies within the NFW cylinder
         self.add_galaxies(member_galaxies)  # Add these member galaxies to the group using the add_galaxies method
         return member_galaxies
+    
+    @classmethod
+    def from_dict(cls, group_dict, galaxies):
+        """
+        Class method to create a Group instance from a dictionary of attributes. This can be used for loading groups from saved data.
+        """
+        pos = group_dict["pos"]
+        m500 = group_dict["m500"] 
+        galaxy = next((g for g in galaxies if (g.pos[0].value == pos[0].value and g.pos[1].value == pos[1].value and g.pos[2] == pos[2])), None)
+        if galaxy is None:
+            raise ValueError("No matching galaxy found for the group center.")
+        group = cls(galaxy, m500)
+        return group
