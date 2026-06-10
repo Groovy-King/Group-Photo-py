@@ -253,3 +253,22 @@ class Group:
         self.m500_gapper = (self.sigma_v_gapper / v0)**alpha * M0 / E_z
         self.m500_gapper = self.m500_gapper.to(u.Msun)
         return self.m500_gapper
+    
+    def search_for_members(self, galaxies):
+        """
+        This method can be used to search for member galaxies of this group among a set of galaxies, based on the NFW cylinder defined by the group's properties. 
+        This method can be used after identifying candidate groups to populate them with their member galaxies.
+        """
+        galaxies = list(galaxies)  # Convert the input galaxies to a list if it is not already a list, to allow for indexing and iteration
+        # Generate the array of angular separations and redshift differences between the group center and all galaxies
+        sky_center = SkyCoord(ra = self.pos[0], dec = self.pos[1])
+        z_center = self.pos[2]
+        sky_galaxies = SkyCoord(ra = [g.pos[0] for g in galaxies], dec = [g.pos[1] for g in galaxies])
+        z_galaxies = np.array([g.pos[2] for g in galaxies])
+        angular_separation = sky_center.separation(sky_galaxies).to(u.rad, equivalencies = u.dimensionless_angles()).value
+        delta_z = z_galaxies - z_center
+
+        nfw_mask = self.NFW_cylinder(angular_separation, delta_z)  # Get the boolean mask for galaxies within the NFW cylinder
+        member_galaxies = [galaxies[i] for i in range(len(galaxies)) if nfw_mask[i]]  # Get the list of member galaxies within the NFW cylinder
+        self.add_galaxies(member_galaxies)  # Add these member galaxies to the group using the add_galaxies method
+        return member_galaxies
