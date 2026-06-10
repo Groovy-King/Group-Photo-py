@@ -193,7 +193,8 @@ class Group:
         """
             Removes galaxies from the group. This method can be used to remove galaxies from groups if they are found to not meet the criteria for group membership.
         """
-        self._member_galaxies -= set(galaxies)  # Use set difference to remove galaxies from the group
+        remove_members = {mg for mg in self._member_galaxies if mg.parent_galaxy in galaxies}  # Identify the MemberGalaxy instances corresponding to the galaxies to be removed
+        self._member_galaxies -= remove_members  # Use set difference to remove galaxies from the group
         if update_galaxies:
             for _, galaxy in enumerate(galaxies):
                 galaxy._associated_groups.discard(self)  # Remove this group from each galaxy's set of associated groups
