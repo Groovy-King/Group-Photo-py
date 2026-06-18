@@ -14,6 +14,8 @@ from loading import load_galaxies
 from candidate_groups import identify_groups
 from util import *
 from post_processing import proximity_merging, membership_merging
+import warnings
+warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser()
 
