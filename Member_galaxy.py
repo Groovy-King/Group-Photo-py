@@ -69,3 +69,12 @@ class MemberGalaxy(Galaxy):
         prob_density_total = prob_density_theta * prob_density_z
         self.probability_density_positional = prob_density_total
         return prob_density_total
+    
+    # Define equality and hashing methods to allow MemberGalaxy instances to be stored in sets and compared based on their unique IDs  
+    def __eq__(self, other):
+        if not isinstance(other, MemberGalaxy):
+            return NotImplemented
+        return self.id == other.id
+
+    def __hash__(self):
+        return hash(self.id)
