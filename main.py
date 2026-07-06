@@ -172,7 +172,7 @@ if save_output:
     #saveable_galaxies = load_galaxies(filename)
     saveable_final_groups = [{'pos': group.pos, 
                             'm500': group.m500,
-                            } for group in final_groups]
+                            } for group in final_groups if not np.isnan(group.m500)]  # Only include groups with valid mass values in the saveable final groups list
         #saveable_group.compute_properties()  # Compute the properties of this group based on the central galaxy and mass information
         #saveable_group.search_for_members(saveable_galaxies)  # Search for member galaxies for this group using the same criteria as before, but using the saveable galaxies loaded from the file to avoid recursion issues
 
