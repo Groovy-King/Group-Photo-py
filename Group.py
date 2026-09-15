@@ -284,4 +284,7 @@ class Group:
         if galaxy is None:
             raise ValueError("No matching galaxy found for the group center.")
         group = cls(galaxy, m500)
+
+        if "hough_index" in group_dict:
+            group.hough_index = group_dict["hough_index"]
         return group
