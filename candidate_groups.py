@@ -52,35 +52,30 @@ def identify_groups(galaxies, n_min = 5, p_min = 0.1):
         lowest_mass_group.NFW_cylinder(angular_separation, delta_z)  
         richness_check = lowest_mass_group.richness >= n_min  # Check if the lowest mass group meets the criteria for minimum richness
 
-        # If the lowest mass group does not meet the criteria for minimum richness, then we can discard all the candidate groups for this galaxy. 
-        if richness_check:  
-            # Check if the created groups satisfy the criteria for being a candidate group, and if so, 
-            # add them to the set of identified groups.
-            discarded_groups = set()  # Keep track of groups that do not meet the criteria to avoid redundant checks
-            for candidate_group in galaxy.core_groups:
-                criteria_check = False
-                nfw_mask = candidate_group.NFW_cylinder(angular_separation, delta_z)
-                nfw_count = candidate_group.richness
-                if nfw_count >= n_min:  # Threshold for group membership
-                    galaxy_velocities = np.array([g.pos[2] for g in gal_list[nfw_mask]]) * c.value
-                    # Perform the Shapiro-Wilk test for normality on the velocity distribution
-                    SW_result = shapiro(galaxy_velocities)
-                    if SW_result.pvalue > p_min:  # Threshold for normality
-                        groups.add(candidate_group)
-                        criteria_check = True
+        # Check if the created groups satisfy the criteria for being a candidate group, and if so, 
+        # add them to the set of identified groups.
+        discarded_groups = set()  # Keep track of groups that do not meet the criteria to avoid redundant checks
+        for candidate_group in galaxy.core_groups:
+            criteria_check = False
+            nfw_mask = candidate_group.NFW_cylinder(angular_separation, delta_z)
+            nfw_count = candidate_group.richness
+            if nfw_count >= n_min:  # Threshold for group membership
+                galaxy_velocities = np.array([g.pos[2] for g in gal_list[nfw_mask]]) * c.value
+                # Perform the Shapiro-Wilk test for normality on the velocity distribution
+                SW_result = shapiro(galaxy_velocities)
+                if SW_result.pvalue > p_min:  # Threshold for normality
+                    groups.add(candidate_group)
+                    criteria_check = True
 
-                if criteria_check:
-                    candidate_group.add_galaxies(gal_list[nfw_mask])  # Add the galaxies within the NFW cylinder to the group if it meets the criteria for group membership
-                else:
-                    galaxy.remove_from_groups(set([candidate_group]))  # Remove the candidate group from the galaxy's set of associated groups if it does not meet the criteria for group membership
-                    discarded_groups.add(candidate_group)
-            
-            for dg in discarded_groups:
-                galaxy.core_groups.discard(dg)  # Discard the candidate group if it does not meet the criteria for group membership       
-        
-        else:
-            galaxy.remove_from_groups(galaxy.core_groups)  
-            galaxy.core_groups.clear() 
+            if criteria_check:
+                candidate_group.add_galaxies(gal_list[nfw_mask])  # Add the galaxies within the NFW cylinder to the group if it meets the criteria for group membership
+            else:
+                galaxy.remove_from_groups(set([candidate_group]))  # Remove the candidate group from the galaxy's set of associated groups if it does not meet the criteria for group membership
+                discarded_groups.add(candidate_group)
+
+        # We shouldn't change the loop while iterating over it, so we discard the candidate groups that do not meet the criteria for group membership after the loop.
+        for dg in discarded_groups:
+            galaxy.core_groups.discard(dg)  # Discard the candidate group if it does not meet the criteria for group membership
     return groups
 
 if __name__ == "__main__":
