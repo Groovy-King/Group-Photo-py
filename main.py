@@ -111,7 +111,8 @@ for galaxy in galaxies:
         m500 = 0 * u.Msun  # Initialize the mass of the group to be extracted from this galaxy to be zero
         hough_index = 0  # Initialize the Hough index of the group to be extracted from this galaxy to be zero
         for group in galaxy.core_groups:
-            m500 += group.m500_gapper * group.probability_mass_band
+            #m500 += group.m500_gapper * group.probability_mass_band
+            m500 += group.m500 * group.probability_mass_band
             hough_index += group.probability_mass_band * np.sum([member.hough_vote_normalized for member in group.member_galaxies])  # Compute the Hough index of the extracted group by summing the Hough votes of the member galaxies, weighted by the mass band probability of this group
 
         # Create a new Group instance for the extracted group, using this galaxy as the central galaxy and the computed mass.
