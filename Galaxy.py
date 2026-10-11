@@ -81,8 +81,17 @@ class Galaxy:
         for group in groups:
             group.remove_galaxy(self, update_galaxy = False)  # Remove this galaxy from the group's set of member galaxies
         return
-    
-    # Define equality and hashing methods to allow Galaxy instances to be stored in sets and compared based on their unique IDs  
+
+    @property
+    def associated_groups(self):
+        """
+            Returns the set of groups that this galaxy belongs to. 
+            This method can be used to access the groups that the galaxy is a member of after they have been added using the add_to_groups method.
+            Prevents accidental editing of the associated groups from outside the Galaxy class by returning a frozenset, which is an immutable version of a set.
+        """
+        return frozenset(self._associated_groups)
+
+    # Define equality and hashing methods to allow Galaxy instances to be stored in sets and compared based on their unique IDs
     def __eq__(self, other):
         if not isinstance(other, Galaxy):
             return NotImplemented

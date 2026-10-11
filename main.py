@@ -167,12 +167,13 @@ if save_output:
     BASE_DIR = Path(__file__).resolve().parent
     output_dir = BASE_DIR / "Output"
     output_dir.mkdir(exist_ok=True)
-    file_path = output_dir / f"Extracted_Groups_Vol_{volume}_Slice_{slice}.pkl"
+    file_path = output_dir / f"Extracted_Groups_Vol_test_{volume}_Slice_{slice}.pkl"
 
-    # To avoid recursion issues, we rebuild the final groups with only the necessary information for later analysis, which includes the position, mass, richness, and the member galaxies.
+    # To avoid recursion issues, we rebuild the final groups with only the necessary information for later analysis, which includes the position, mass, hough index, and the member galaxies.
     #saveable_galaxies = load_galaxies(filename)
     saveable_final_groups = [{'pos': group.pos, 
                             'm500': group.m500,
+                            'hough_index': group.hough_index,
                             } for group in final_groups if not np.isnan(group.m500)]  # Only include groups with valid mass values in the saveable final groups list
         #saveable_group.compute_properties()  # Compute the properties of this group based on the central galaxy and mass information
         #saveable_group.search_for_members(saveable_galaxies)  # Search for member galaxies for this group using the same criteria as before, but using the saveable galaxies loaded from the file to avoid recursion issues
