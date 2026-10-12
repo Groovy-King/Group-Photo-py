@@ -72,7 +72,7 @@ class MemberGalaxy(Galaxy):
     
     # Define equality and hashing methods to allow MemberGalaxy instances to be stored in sets and compared based on their unique IDs  
     def __eq__(self, other):
-        if not isinstance(other, MemberGalaxy):
+        if not isinstance(other, Galaxy):
             return NotImplemented
         return self.id == other.id
 
