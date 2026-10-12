@@ -10,7 +10,7 @@ class MemberGalaxy(Galaxy):
     """
     def __init__(self, galaxy, group):
         # Call the constructor of the parent Galaxy class to initialize the position and properties
-        super().__init__(galaxy.pos, galaxy.properties, id = galaxy.id, include_groups = False)  
+        super().__init__(galaxy.pos, galaxy.properties, id = galaxy.id, include_core_groups = False, include_associated_groups = False)  
         self.parent_group = group  # Store a reference to the group that this galaxy belongs to
         self.parent_galaxy = galaxy  # Store a reference to the original Galaxy instance that this MemberGalaxy is based on
         return
