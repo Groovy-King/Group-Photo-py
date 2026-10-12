@@ -300,7 +300,7 @@ class Group:
             return self._MMG
         
         if not self._member_galaxies:
-            self._MMG = None
-            return self._MMG
+            raise ValueError("No member galaxies in the group to determine MMG.")
+        
         self._MMG = max(self._member_galaxies, key = lambda mg: mg.parent_galaxy.properties["stellar_mass"])
         return self._MMG
