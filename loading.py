@@ -6,7 +6,7 @@ from Galaxy import Galaxy
 from Group import Group
 from True_group import TrueGroup
 
-def load_galaxies(filename):
+def load_galaxies(filename, include_core_groups = True, include_associated_groups = True):
     """
         Loads galaxy data from the specified file, and returns a list of Galaxy objects. The function also checks that the input volume and slice numbers are valid integers within the expected range (volume: 1-9, slice: 1-3). 
         Each Galaxy object is initialized with its position (RA, Dec, z) and properties (magnitude, stellar mass, absolute magnitude, halo mass). Additionally, a boolean attribute 'has_halo' is set for each galaxy based on whether the galaxy 
@@ -32,7 +32,7 @@ def load_galaxies(filename):
             "absolute_mag": M,
             "halo_mass": M_halo
         }
-        gal = Galaxy(center, properties)
+        gal = Galaxy(center, properties, include_core_groups = include_core_groups, include_associated_groups = include_associated_groups)
 
         if M_halo > 0:
             gal.has_halo = True
