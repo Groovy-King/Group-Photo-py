@@ -4,6 +4,7 @@ import astropy.units as u
 
 from Galaxy import Galaxy
 from Group import Group
+from True_group import TrueGroup
 
 def load_galaxies(filename):
     """
@@ -40,3 +41,33 @@ def load_galaxies(filename):
         galaxies.add(gal)
 
     return galaxies
+
+def load_true_groups(filename, galaxies):
+    """
+        Loads true group data from the specified file, and returns a list of Group objects. Each Group object is initialized with its position (RA, Dec, z) and properties (richness, r200, sigma_z). 
+        The function also checks that the input volume and slice numbers are valid integers within the expected range (volume: 1-9, slice: 1-3).
+    """
+
+    df = pd.read_csv(filename)
+    true_groups = set()  # Use a set to store true groups to avoid duplicates
+    n_groups = max(df.iloc[:, 0])  # Get the maximum group ID to determine the number of groups
+    for i in range(n_groups):
+        group_data = df[df.iloc[:, 0] == i]
+        if not group_data.empty:
+            # Initialize the group with its position and properties
+            members = set()
+            for j in range(len(group_data)):
+                gal = next((g for g in galaxies if g.pos[0] == group_data.iloc[j, 1] * u.degree and g.pos[1] == group_data.iloc[j, 2] * u.degree and g.pos[2] == group_data.iloc[j, 3]), None)
+                if gal is not None:
+                    members.add(gal)
+                else:
+                    raise ValueError(f"Warning: Galaxy with position ({group_data.iloc[j, 1]}, {group_data.iloc[j, 2]}, {group_data.iloc[j, 3]}) not found in the loaded galaxies.")
+
+            halo_masses = [group_data.iloc[j, -1] for j in range(len(group_data))]
+            if len(np.unique(halo_masses)) > 1:
+                raise ValueError(f"Warning: Inconsistent halo masses for group {i}.")
+            else:
+                m500 = halo_masses[0] * u.Msun
+            TG = TrueGroup(members, m500)
+            true_groups.add(TG)
+    return true_groups
