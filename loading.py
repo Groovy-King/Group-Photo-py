@@ -50,7 +50,7 @@ def load_true_groups(filename, galaxies):
 
     df = pd.read_csv(filename)
     true_groups = set()  # Use a set to store true groups to avoid duplicates
-    n_groups = max(df.iloc[:, 0])  # Get the maximum group ID to determine the number of groups
+    n_groups = int(max(df.iloc[:, 0]))  # Get the maximum group ID to determine the number of groups
     for i in range(n_groups):
         group_data = df[df.iloc[:, 0] == i]
         if not group_data.empty:
