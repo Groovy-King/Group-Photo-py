@@ -19,13 +19,19 @@ class Galaxy:
     
     # Constructor to initialize a Galaxy instance with its position (RA, Dec, z) and properties (magnitude, stellar mass, absolute magnitude, 
     # halo mass). The position is stored as a numpy array for easy access and manipulation. 
-    def __init__(self, pos, properties, id = None, include_groups = True):
+    def __init__(self, pos, properties, id = None, include_core_groups = True, include_associated_groups = True):
+        """
+            Initializes a Galaxy instance with its position and properties. The position is stored as a numpy array for easy access and manipulation. 
+            The properties are stored as a dictionary for easy access to individual properties by name. 
+            The unique ID is generated if not provided, and the galaxy can optionally include sets of core groups and associated groups.
+        """
         self.id = id if id is not None else self._generate_id()
         self.pos = pos
         self.properties = properties
         
-        if include_groups:
+        if include_core_groups:
             self.core_groups = set()  # Initialize an empty set to store the groups centered on this galaxy
+        if include_associated_groups:
             self._associated_groups = set()  # Initialize an empty set to store the associated groups that this galaxy belongs to
         return
     
