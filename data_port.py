@@ -39,7 +39,6 @@ def convert_mat_to_csv(mat_file_path, csv_file_path):
 
     # Save as CSV
     df.to_csv(csv_file_path, index=False)
-
     return
 
 
