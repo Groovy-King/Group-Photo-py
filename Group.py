@@ -28,7 +28,7 @@ class Group:
     
     # Constructor to initialize a Group instance with its central galaxy and M500. The position of the group is set to be the same 
     # as the central galaxy's position. An empty set is initialized to store the galaxies that belong to this group.
-    def __init__(self, central_galaxy, m500):
+    def __init__(self, central_galaxy, m500, add_central_galaxy = True):
         """
             Must inlcude M500 in the initialization, and must always be called within a Galaxy instance.
         """
@@ -37,7 +37,8 @@ class Group:
         self.m500 = m500
         self.id = self._generate_id()  # Unique identifier for the group, generated using a combination of the central galaxy's ID and the mass band index
         self._member_galaxies = set()  # Initialize an empty set to store the galaxies that belong to this group
-        self.add_galaxy(central_galaxy)  # Add the central galaxy to the group by default
+        if add_central_galaxy:
+            self.add_galaxy(central_galaxy)  # Add the central galaxy to the group by default
         return
     
     @property
