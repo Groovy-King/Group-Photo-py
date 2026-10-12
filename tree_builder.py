@@ -14,7 +14,7 @@ from Member_galaxy import MemberGalaxy
 from loading import load_galaxies
 from candidate_groups import identify_groups
 
-def build_tree(galaxies, extracted_groups):
+def build_tree(galaxies, extracted_groups, print_out = False):
     """
         Rebuilds the tree structure of groups and their member galaxies from the extracted groups and the original galaxy data.
         This function takes the original galaxy data and the extracted groups, and reconstructs the hierarchical structure of groups and their member galaxies. 
@@ -57,12 +57,14 @@ def build_tree(galaxies, extracted_groups):
             assert member.parent_group == group, "Member galaxy does not reference its parent group correctly."
             assert member.parent_group in member.parent_galaxy.associated_groups, "Member galaxy is not properly associated with its parent group."
         assert len(group.member_galaxies) == group.richness, "Group richness does not match the number of member galaxies."
-    print("Verified group -> galaxy linking successfully.")
+    if print_out:
+        print("Verified group -> galaxy linking successfully.")
 
     # Verify that the tree is built correctly by verifying that each group member galaxy has a reference to its parent group and that the group has a list of its member galaxies.
     for galaxy in galaxies:
         for group in galaxy.associated_groups:
             assert galaxy in [mg.parent_galaxy for mg in group.member_galaxies], "Galaxy is not properly associated with its parent group."
-    print("Verified galaxy -> group linking successfully.")
+    if print_out:
+        print("Verified galaxy -> group linking successfully.")
 
     return groups
