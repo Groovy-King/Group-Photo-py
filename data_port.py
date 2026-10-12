@@ -24,7 +24,7 @@ def convert_mat_to_csv(mat_file_path, csv_file_path):
         galaxies = Group[0, i]
 
         # Create a group ID column
-        group_id = np.full((galaxies.shape[0], 1), i + 1)
+        group_id = np.full((galaxies.shape[0], 1), i)
 
         # Append group ID and the 10 properties
         galaxies_with_id = np.hstack((group_id, galaxies[:, 1:4], galaxies[:, 6:]))  # Only include relevant columns
