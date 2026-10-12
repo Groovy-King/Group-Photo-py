@@ -45,7 +45,6 @@ def load_galaxies(filename):
 def load_true_groups(filename, galaxies):
     """
         Loads true group data from the specified file, and returns a list of Group objects. Each Group object is initialized with its position (RA, Dec, z) and properties (richness, r200, sigma_z). 
-        The function also checks that the input volume and slice numbers are valid integers within the expected range (volume: 1-9, slice: 1-3).
     """
 
     df = pd.read_csv(filename)
