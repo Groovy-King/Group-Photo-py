@@ -289,3 +289,18 @@ class Group:
         if "hough_index" in group_dict:
             group.hough_index = group_dict["hough_index"]
         return group
+
+    @property
+    def MMG(self):
+        """
+        Returns the most massive galaxy (MMG) in the group based on stellar mass. 
+        This property can be used to identify the central galaxy of the group, which is often assumed to be the most massive member.
+        """
+        if hasattr(self, "_MMG"):
+            return self._MMG
+        
+        if not self._member_galaxies:
+            self._MMG = None
+            return self._MMG
+        self._MMG = max(self._member_galaxies, key = lambda mg: mg.parent_galaxy.properties["stellar_mass"])
+        return self._MMG
