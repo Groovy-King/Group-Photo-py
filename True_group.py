@@ -101,7 +101,7 @@ class TrueGroup(Group):
             elif len(candidate_primary_extracted_groups) > 1:
                 out_dict_self["primary_extracted_group"] = max(candidate_primary_extracted_groups, key = lambda g: g.m500)  # Choose the group with the highest m500 as the primary extracted group
                 out_dict_self["identification"] = "True Positive"  # MMG is correctly identified in multiple extracted groups
-                out_dict_self["special_case"] = True  # Special case where multiple extracted groups have the same MMG
+                out_dict_self["special_case"] = "MMG part of more than one extracted group"  # Special case where multiple extracted groups have the same MMG
 
                 out_dict_eg["primary_true_group"] = self
                 out_dict_eg["identification"] = "True Positive"
@@ -109,4 +109,5 @@ class TrueGroup(Group):
             else:
                 out_dict_self["primary_extracted_group"] = None  # No matching extracted group found for the MMG
                 out_dict_self["identification"] = "False Negative"  # MMG is not correctly identified in any extracted group
+                out_dict_self["special_case"] = "True Group MMG is a member but not the MMG of any extracted group"  # Special case where the MMG is not part of any extracted group
         return out_dict_self, out_dict_eg
