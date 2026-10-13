@@ -1,10 +1,10 @@
 import subprocess
 
-for volume in range(1, 10):
-    for slice in range(1, 4):
-        print(f"Running main.py with volume={volume} and slice={slice}")
+for volume in range(1, 2):
+    for slice in range(1, 2):
+        print(f"Running algorithm_statistics.py with volume={volume} and slice={slice}")
         subprocess.run([
-            "python", "main.py",
+            "python", "algorithm_statistics.py",
             "--volume", str(volume),
             "--slice", str(slice)
         ])
