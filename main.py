@@ -165,7 +165,7 @@ print(f"Checked the Shapiro-Wilk condition and reduced the number of groups from
 
 if save_output:
     BASE_DIR = Path(__file__).resolve().parent
-    output_dir = BASE_DIR / "Output"
+    output_dir = BASE_DIR / "Output" / "Hough_Groups"
     output_dir.mkdir(exist_ok=True)
     file_path = output_dir / f"Extracted_Groups_Vol_test_{volume}_Slice_{slice}.pkl"
 
