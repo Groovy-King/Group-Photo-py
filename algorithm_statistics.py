@@ -41,7 +41,7 @@ elif slice < 1 or slice > 3:
 
 # Load galaxies and rebuild the bidirectional tree for galaxies and Hough groups
 galaxies = load_galaxies(f"Data/Galaxies/Vol_{volume}_Slice_{slice}.csv", include_core_groups = False, include_associated_groups = True)
-extracted_group_dicts = pickle.load(open(f"Output/Hough_Groups/Extracted_Groups_Vol_test_{volume}_Slice_{slice}.pkl", "rb"))  # Load the extracted groups from the pickle file
+extracted_group_dicts = pickle.load(open(f"Output/Hough_Groups/Extracted_Groups_Vol_{volume}_Slice_{slice}.pkl", "rb"))  # Load the extracted groups from the pickle file
 hough_groups = build_tree(galaxies, extracted_group_dicts, print_out=True)
 
 # Load true groups from the Millennium simulation data
@@ -78,16 +78,20 @@ precision = true_positives / len(hough_groups)
 recall = true_positives / len(true_groups) 
 
 # Save the computed precision and recall metrics to a csv file
-filename = Path("Output/Hough_Groups/Precision_Recall_Metrics.csv")
+filename = Path("Output/Precision_Recall_Metrics.csv")
 df = pd.read_csv(filename, index_col = "index")
 
 # Find the index corresponding to the current volume and slice
-i = df[(df["volume"] == volume) & (df["slice"] == slice)].index[0]
-
-# Update the precision and recall values for the current volume and slice
-df.at[i, "precision"] = precision
-df.at[i, "recall"] = recall
-
+try:
+    i = df[(df["volume"] == volume) & (df["slice"] == slice)].index[0]
+    # Update the precision and recall values for the current volume and slice
+    df.at[i, "precision"] = precision
+    df.at[i, "recall"] = recall
+except IndexError:
+    # If no matching row is found, append a new row
+    i = len(df)
+    df.loc[i] = {"volume": volume, "slice": slice, "precision": precision, "recall": recall}
+   
 # Save the updated DataFrame
 df.to_csv(filename)
 print(f"Precision and recall metrics for Volume {volume}, Slice {slice} have been updated.")
