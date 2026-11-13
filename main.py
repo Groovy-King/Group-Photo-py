@@ -105,7 +105,7 @@ for group in groups:
         member.hough_vote_normalized = member.hough_vote / member.parent_galaxy.hough_normalization_factor  # Normalize the Hough vote of this member galaxy for this group by dividing it by the normalization factor computed for the parent galaxy instance     
 
 # Build the extracted groups, and compute the Hough index for each group based on the probabilities and weights computed above.
-extracted_groups = set()  # Initialize an empty set to store the extracted groups
+extracted_groups_dict = set()  # Initialize an empty set to store the extracted groups
 for galaxy in galaxies:
     if galaxy.core_groups:  # Check if this galaxy is a core galaxy of any group
         m500 = 0 * u.Msun  # Initialize the mass of the group to be extracted from this galaxy to be zero
@@ -117,15 +117,43 @@ for galaxy in galaxies:
 
         # Create a new Group instance for the extracted group, using this galaxy as the central galaxy and the computed mass.
         # We follow the whole retinue of initialization steps for the Group class, including computing properties, but building the NFW cylinder and member galaxy instances, and the new bidirectional links will be built later once all the extracted groups are in place
-        extracted_group = Group(galaxy, m500)  
-        extracted_group.hough_index = hough_index  # Assign the computed Hough index to this extracted group
-        extracted_group.compute_properties()  
-        extracted_groups.add(extracted_group)  # Add this extracted group to the set of extracted groups
-print(f"Extracted {len(extracted_groups)} groups and assigned Hough indices.")
+        #extracted_group = Group(galaxy, m500)  
+        #extracted_group.hough_index = hough_index  # Assign the computed Hough index to this extracted group
+        #extracted_group.compute_properties()  
+        extracted_group = {'pos': galaxy.pos, 
+                            'm500': m500,
+                            'hough_index': hough_index,
+                            }
+        extracted_groups_dict.add(extracted_group)  # Add this extracted group to the set of extracted groups
+print(f"Extracted {len(extracted_groups_dict)} groups and assigned Hough indices.")
 
+"""
 # Before building the extracted group memberships, we clear all the associated groups from each galaxy
 for galaxy in galaxies:
     galaxy.remove_from_groups(galaxy._associated_groups)  # Clear all the associated groups from this galaxy to prepare for building the extracted group memberships
+"""
+
+# Reload the galaxies to build the extracted group tree from scratch
+galaxies = load_galaxies(filename)
+gal_list = np.array(list(galaxies), dtype = object)
+
+# Reconstructing galaxies position list
+n_galaxies = len(galaxies)
+ra_galaxies = np.empty(n_galaxies, dtype = object)
+dec_galaxies = np.empty(n_galaxies, dtype = object)
+z_galaxies = np.empty(n_galaxies)
+for i, g in enumerate(gal_list):
+    ra_galaxies[i] = g.pos[0]
+    dec_galaxies[i] = g.pos[1]
+    z_galaxies[i] = g.pos[2]
+sky_galaxies = SkyCoord(ra = ra_galaxies, dec = dec_galaxies)
+
+# Build the set of extracted groups from the dictionary
+extracted_groups = set()
+for group_dict in extracted_groups_dict:
+    extracted_group = Group.from_dict(group_dict, galaxies)  # Create a new Group instance from the dictionary representation of the extracted group
+    extracted_group.compute_properties()
+    extracted_groups.add(extracted_group)
 
 # Build the NFW cylinder and member galaxy instances for each extracted group, and establish the bidirectional links between the member galaxies and the extracted group.
 for group in extracted_groups:
@@ -174,6 +202,7 @@ if save_output:
     saveable_final_groups = [{'pos': group.pos, 
                             'm500': group.m500,
                             'hough_index': group.hough_index,
+                            'member_pos': [galaxy.pos for galaxy in group.member_galaxies]
                             } for group in final_groups if not np.isnan(group.m500)]  # Only include groups with valid mass values in the saveable final groups list
         #saveable_group.compute_properties()  # Compute the properties of this group based on the central galaxy and mass information
         #saveable_group.search_for_members(saveable_galaxies)  # Search for member galaxies for this group using the same criteria as before, but using the saveable galaxies loaded from the file to avoid recursion issues

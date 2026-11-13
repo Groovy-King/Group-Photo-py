@@ -50,7 +50,7 @@ class Group:
         """
         return frozenset(self._member_galaxies)
 
-    def NFW_cylinder(self, angular_separation, delta_z):
+    def NFW_cylinder(self, angular_separation, delta_z, sky_alpha = 1, z_alpha = 1):
         try:
             H = self.H
         except AttributeError:
@@ -63,10 +63,10 @@ class Group:
         z_max = 2 * sigma_z.value
         
         # Generate a boolean mask for galaxies within the angular separation corresponding to R200
-        angular_mask = angular_separation < theta_max
+        angular_mask = angular_separation < sky_alpha * theta_max
 
         # Generate a boolean mask for galaxies within the redshift separation corresponding to 2*sigma_z
-        z_mask = np.abs(delta_z) < z_max
+        z_mask = np.abs(delta_z) < z_alpha * z_max
 
         # Combine the angular and redshift masks to identify galaxies within the NFW cylinder
         nfw_cylinder_mask = angular_mask & z_mask
@@ -288,6 +288,11 @@ class Group:
 
         if "hough_index" in group_dict:
             group.hough_index = group_dict["hough_index"]
+
+        if "member_pos" in group_dict:
+            member_positions = group_dict["member_pos"]
+            member_galaxies = [g for g in galaxies if any(np.isclose(g.pos[0].value, mp[0].value) and np.isclose(g.pos[1].value, mp[1].value) and np.isclose(g.pos[2], mp[2]) for mp in member_positions)]
+            group.add_galaxies(member_galaxies)
         return group
 
     @property
