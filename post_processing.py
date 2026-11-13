@@ -36,7 +36,8 @@ def proximity_merging(Groups):
         angular_separation = sky_center.separation(sky_groups).to(u.rad, equivalencies = u.dimensionless_angles()).value
         delta_z = z_groups - z_center
 
-        nfw_mask = group.NFW_cylinder(angular_separation, delta_z)
+        alpha = 1.5  # Define the scaling factor for the NFW cylinder
+        nfw_mask = group.NFW_cylinder(angular_separation, delta_z, sky_alpha = alpha, z_alpha = alpha)  # Get the boolean mask for groups within a slightly enlarged NFW cylinder of this group
         nearby_groups = groups[nfw_mask]  # Get the nearby groups within the NFW cylinder
         nearby_groups = nearby_groups[[not hasattr(g, 'proximity_merged') for g in nearby_groups]]  # Filter out the nearby groups that have already been merged into another group
         if len(nearby_groups) == 0:
@@ -45,6 +46,12 @@ def proximity_merging(Groups):
 
         # If there are nearby groups, we identify the central group with the highest Hough index among the nearby groups, and merge all nearby groups into this central group
         central_group = nearby_groups[np.argmax([g.hough_index for g in nearby_groups])]  # Identify the central group with the highest Hough index among the nearby groups
+        if central_group != group:
+            galaxies = set()
+            for galaxy in group.member_galaxies:
+                galaxies.add(galaxy.parent_galaxy)  # Add the member galaxies of this nearby group to the set of galaxies to be merged into the central group
+            central_group.add_galaxies(galaxies)  # Add the member galaxies of the nearby group to the central group, and creates the bidirectional links between the member galaxies and the central group
+            group.remove_galaxies(galaxies)  # Remove the member galaxies from the nearby group, essentially deleting the nearby group as it has been merged into the central group
         
         # We then merge all nearby groups into the central group
         for nearby_group in nearby_groups:
