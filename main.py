@@ -105,7 +105,7 @@ for group in groups:
         member.hough_vote_normalized = member.hough_vote / member.parent_galaxy.hough_normalization_factor  # Normalize the Hough vote of this member galaxy for this group by dividing it by the normalization factor computed for the parent galaxy instance     
 
 # Build the extracted groups, and compute the Hough index for each group based on the probabilities and weights computed above.
-extracted_groups_dict = set()  # Initialize an empty set to store the extracted groups
+extracted_groups_dict = []  # Initialize an empty list to store the extracted groups
 for galaxy in galaxies:
     if galaxy.core_groups:  # Check if this galaxy is a core galaxy of any group
         m500 = 0 * u.Msun  # Initialize the mass of the group to be extracted from this galaxy to be zero
@@ -124,7 +124,7 @@ for galaxy in galaxies:
                             'm500': m500,
                             'hough_index': hough_index,
                             }
-        extracted_groups_dict.add(extracted_group)  # Add this extracted group to the set of extracted groups
+        extracted_groups_dict.append(extracted_group)  # Add this extracted group to the list of extracted groups
 print(f"Extracted {len(extracted_groups_dict)} groups and assigned Hough indices.")
 
 """
